@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .about-section { margin: 40px 0; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 20px 0; }
+    .feature-card { background: var(--card); padding: 25px; border-radius: 8px; border-top: 4px solid var(--accent); text-align: center; }
+    .feature-icon { font-size: 2.5em; margin-bottom: 10px; }
+    .feature-title { font-size: 1.2em; font-weight: 600; color: var(--text); margin: 10px 0; }
+    .feature-desc { color: var(--muted); font-size: 0.95em; line-height: 1.6; }
+    .timeline { margin: 20px 0; }
+    .timeline-item { padding: 15px; margin: 10px 0; background: var(--card); border-left: 4px solid var(--accent); }
+    @media (max-width: 600px) { .feature-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div style="max-width: 1100px; margin: 0 auto;">
+
+<h1 style="margin-bottom: 10px;">🍅 Tomato Disease Detection System</h1>
+<p style="color: var(--muted); font-size: 1.1em; margin-bottom: 30px;">An advanced AI-powered application for detecting and classifying tomato plant diseases in real-time</p>
+
+<!-- Project Overview -->
+<div class="about-section">
+    <h2>📋 Project Overview</h2>
+    <div class="card" style="padding: 20px; line-height: 1.8;">
+        <p>
+            This innovative system uses deep learning and edge AI technology to detect and classify diseases 
+            in tomato plants with high accuracy. Designed for both research and agricultural deployment, 
+            it provides real-time disease detection with minimal latency.
+        </p>
+        <p>
+            The application combines a pre-trained MobileNetV2 neural network with TensorFlow Lite quantization 
+            to enable efficient inference on edge devices like Raspberry Pi, making it accessible for remote 
+            agricultural monitoring without requiring cloud connectivity.
+        </p>
+    </div>
+</div>
+
+<!-- Key Features -->
+<div class="about-section">
+    <h2>✨ Key Features</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <div class="feature-title">AI-Powered Detection</div>
+            <div class="feature-desc">MobileNetV2 deep learning model trained on 10,000+ tomato plant images</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <div class="feature-title">Edge Inference</div>
+            <div class="feature-desc">INT8 quantized model for fast inference on low-power devices (50-200ms per prediction)</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📱</div>
+            <div class="feature-title">Multi-Input Support</div>
+            <div class="feature-desc">Upload images or use camera for real-time disease detection</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <div class="feature-title">Analytics Dashboard</div>
+            <div class="feature-desc">Real-time statistics, accuracy tracking, and prediction history</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">✔️</div>
+            <div class="feature-title">User Feedback Loop</div>
+            <div class="feature-desc">Improve model accuracy by providing feedback on predictions</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🌾</div>
+            <div class="feature-title">10 Disease Classes</div>
+            <div class="feature-desc">Detects healthy plants and 9 different disease conditions</div>
+        </div>
+    </div>
+</div>
+
+<!-- Technology Stack -->
+<div class="about-section">
+    <h2>🔧 Technology Stack</h2>
+    <div class="card" style="padding: 25px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 20px 0;">
+            <div>
+                <h3 style="color: var(--accent); margin-bottom: 15px;">Backend</h3>
+                <ul style="list-style: none; padding: 0; color: var(--muted);">
+                    <li style="padding: 8px 0;">✓ FastAPI (Python web framework)</li>
+                    <li style="padding: 8px 0;">✓ TensorFlow Lite (ML inference)</li>
+                    <li style="padding: 8px 0;">✓ SQLite (prediction logging)</li>
+                    <li style="padding: 8px 0;">✓ Uvicorn (ASGI server)</li>
+                </ul>
+            </div>
+            <div>
+                <h3 style="color: var(--accent); margin-bottom: 15px;">Frontend</h3>
+                <ul style="list-style: none; padding: 0; color: var(--muted);">
+                    <li style="padding: 8px 0;">✓ Jinja2 templating</li>
+                    <li style="padding: 8px 0;">✓ Vanilla JavaScript</li>
+                    <li style="padding: 8px 0;">✓ Chart.js analytics</li>
+                    <li style="padding: 8px 0;">✓ Responsive CSS design</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Development Timeline -->
+<div class="about-section">
+    <h2>📅 Development Timeline</h2>
+    <div class="timeline">
+        <div class="timeline-item">
+            <strong>Phase 1: Model Training</strong>
+            <p style="margin: 8px 0 0 0; color: var(--muted);">Trained MobileNetV2 on PlantVillage dataset with transfer learning and data augmentation</p>
+        </div>
+        <div class="timeline-item">
+            <strong>Phase 2: Model Optimization</strong>
+            <p style="margin: 8px 0 0 0; color: var(--muted);">Converted model to INT8 quantized TFLite format for edge deployment</p>
+        </div>
+        <div class="timeline-item">
+            <strong>Phase 3: Web Application</strong>
+            <p style="margin: 8px 0 0 0; color: var(--muted);">Built FastAPI backend with real-time inference and database logging</p>
+        </div>
+        <div class="timeline-item">
+            <strong>Phase 4: Dashboard Development</strong>
+            <p style="margin: 8px 0 0 0; color: var(--muted);">Created analytics dashboard with real-time statistics and performance metrics</p>
+        </div>
+        <div class="timeline-item">
+            <strong>Phase 5: MLOps Integration</strong>
+            <p style="margin: 8px 0 0 0; color: var(--muted);">Added user feedback system to track model accuracy and improve predictions</p>
+        </div>
+    </div>
+</div>
+
+<!-- Use Cases -->
+<div class="about-section">
+    <h2>🌱 Use Cases</h2>
+    <div class="feature-grid">
+        <div class="card" style="padding: 20px; border-left: 4px solid var(--accent);">
+            <h3 style="color: var(--accent); margin-top: 0;">Farm Management</h3>
+            <p style="color: var(--muted); margin: 0; line-height: 1.6;">Early disease detection to minimize crop loss and optimize pesticide usage</p>
+        </div>
+        <div class="card" style="padding: 20px; border-left: 4px solid var(--accent);">
+            <h3 style="color: var(--accent); margin-top: 0;">Research & Education</h3>
+            <p style="color: var(--muted); margin: 0; line-height: 1.6;">Educational tool for plant pathology and agricultural technology students</p>
+        </div>
+        <div class="card" style="padding: 20px; border-left: 4px solid var(--accent);">
+            <h3 style="color: var(--accent); margin-top: 0;">Remote Monitoring</h3>
+            <p style="color: var(--muted); margin: 0; line-height: 1.6;">Deploy on Raspberry Pi for autonomous greenhouse monitoring</p>
+        </div>
+    </div>
+</div>
+
+<!-- Model Performance -->
+<div class="about-section">
+    <h2>📈 Model Performance</h2>
+    <div id="about-perf" class="card" style="padding: 20px;">
+        <div style="text-align: center; color: var(--muted);">Loading performance data...</div>
+    </div>
+</div>
+
+<!-- About Team/Developer -->
+<div class="about-section">
+    <h2>👩‍💻 About Developer</h2>
+    <div class="card" style="padding: 25px;">
+        <p style="margin-bottom: 15px;">
+            <strong>Tomato Disease Detection System v1.0</strong><br>
+            <span style="color: var(--muted);">A comprehensive AI solution for agricultural disease detection</span>
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+            <div style="border-right: 1px solid var(--muted); padding-right: 20px;">
+                <p style="margin: 0; color: var(--muted);"><strong>Model Training:</strong> Transfer learning with MobileNetV2 architecture</p>
+                <p style="margin: 10px 0 0 0; color: var(--muted);"><strong>Framework:</strong> TensorFlow 2.x</p>
+            </div>
+            <div>
+                <p style="margin: 0; color: var(--muted);"><strong>Optimization:</strong> Quantization-aware training & INT8 conversion</p>
+                <p style="margin: 10px 0 0 0; color: var(--muted);"><strong>License:</strong> Open Source</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact & Support -->
+<div class="about-section" style="margin-bottom: 50px;">
+    <h2>💬 Support & Feedback</h2>
+    <div class="card" style="padding: 20px; background: rgba(39, 174, 96, 0.1); border-left: 4px solid var(--accent);">
+        <p style="margin: 0; color: var(--text);">
+            <strong>Help improve this system!</strong> Provide feedback on predictions to help the model learn and improve accuracy over time. 
+            Your feedback directly contributes to model optimization and better disease detection.
+        </p>
+    </div>
+</div>
+
+</div>
+
+<script>
+async function loadAboutPerf() {
+    try {
+        const response = await fetch('/model-performance');
+        const data = await response.json();
+        const html = `
+            <div style="text-align: center;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="padding: 20px; background: var(--muted); border-radius: 8px;">
+                        <div style="font-size: 0.9em; color: var(--muted); text-transform: uppercase;">Total Predictions</div>
+                        <div style="font-size: 2.2em; font-weight: 700; color: var(--text); margin-top: 8px;">${data.total_predictions}</div>
+                    </div>
+                    <div style="padding: 20px; background: rgba(39, 174, 96, 0.2); border-radius: 8px;">
+                        <div style="font-size: 0.9em; color: var(--muted); text-transform: uppercase;">Accuracy</div>
+                        <div style="font-size: 2.2em; font-weight: 700; color: #27ae60; margin-top: 8px;">${data.accuracy_percent}%</div>
+                    </div>
+                    <div style="padding: 20px; background: var(--muted); border-radius: 8px;">
+                        <div style="font-size: 0.9em; color: var(--muted); text-transform: uppercase;">Avg Confidence</div>
+                        <div style="font-size: 2.2em; font-weight: 700; color: var(--text); margin-top: 8px;">${data.avg_confidence_percent}%</div>
+                    </div>
+                    <div style="padding: 20px; background: var(--muted); border-radius: 8px;">
+                        <div style="font-size: 0.9em; color: var(--muted); text-transform: uppercase;">Inference Speed</div>
+                        <div style="font-size: 2.2em; font-weight: 700; color: var(--text); margin-top: 8px;">${data.avg_inference_time_ms} ms</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('about-perf').innerHTML = html;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+loadAboutPerf();
+</script>
+
+{% endblock %}

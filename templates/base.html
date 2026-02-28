@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>{{ title }} • Tomato Detector</title>
+  <link rel="stylesheet" href="/static/style.css">
+  {% if page == 'dashboard' %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endif %}
+</head>
+<body>
+  <div class="container">
+    <header class="topnav">
+      <div class="logo">🍅 Tomato AI</div>
+      <nav>
+        <a href="/" class="{% if page=='home' %}active{% endif %}">Home</a>
+        <a href="/dashboard" class="{% if page=='dashboard' %}active{% endif %}">Dashboard</a>
+        <a href="/history-page" class="{% if page=='history' %}active{% endif %}">History</a>
+        <a href="/analytics" class="{% if page=='analytics' %}active{% endif %}">Analytics</a>
+        <a href="/model" class="{% if page=='model' %}active{% endif %}">Model</a>
+        <a href="/about" class="{% if page=='about' %}active{% endif %}">About</a>
+      </nav>
+    </header>
+
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

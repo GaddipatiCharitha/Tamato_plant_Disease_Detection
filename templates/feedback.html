@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Model Feedback</h1>
+
+<div class="card">
+<p>Help improve AI accuracy by correcting predictions.</p>
+
+<input id="predictionId" placeholder="Prediction ID"/>
+<input id="trueLabel" placeholder="Correct Label"/>
+
+<button onclick="sendFeedback()" class="btn primary">
+Submit Feedback
+</button>
+</div>
+
+<script>
+async function sendFeedback(){
+ const id=document.getElementById('predictionId').value;
+ const label=document.getElementById('trueLabel').value;
+
+ await fetch(`/feedback/${id}`,{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({true_label:label})
+ });
+
+ alert("Feedback submitted!");
+}
+</script>
+
+{% endblock %}

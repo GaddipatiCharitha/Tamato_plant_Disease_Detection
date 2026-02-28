@@ -1,0 +1,442 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .home-header { text-align: center; margin-bottom: 40px; }
+    .home-header h1 { font-size: 2.5em; margin-bottom: 10px; color: var(--accent); }
+    .home-header p { font-size: 1.1em; color: var(--muted); }
+    
+    .input-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px; }
+    .upload-card, .camera-card { background: var(--card); padding: 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08); }
+    .upload-card h3, .camera-card h3 { color: var(--accent); margin-bottom: 15px; font-size: 1.3em; }
+    
+    .upload-area { 
+        padding: 40px 20px; 
+        border: 2px dashed rgba(39, 174, 96, 0.3); 
+        border-radius: 10px; 
+        text-align: center; 
+        background: rgba(39, 174, 96, 0.05);
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .upload-area:hover { 
+        border-color: var(--accent); 
+        background: rgba(39, 174, 96, 0.1);
+    }
+    
+    .upload-icon { font-size: 2.5em; margin-bottom: 10px; }
+    .upload-text { color: var(--muted); font-size: 0.95em; }
+    .upload-text strong { color: var(--text); display: block; margin-top: 8px; }
+    
+    .preview-container { 
+        width: 100%;
+        min-height: 300px;
+        background: rgba(255,255,255,.02);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+    
+    .preview { 
+        max-width: 100%;
+        max-height: 400px;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+    
+    .preview-placeholder {
+        text-align: center;
+        color: var(--muted);
+    }
+    .preview-placeholder-icon { font-size: 3em; margin-bottom: 10px; }
+    
+    .btn-group { 
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .prediction-result {
+        background: var(--card);
+        padding: 30px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,.08);
+        margin-bottom: 30px;
+        display: none;
+    }
+    
+    .prediction-result.show { display: block; }
+    
+    .disease-name {
+        font-size: 2em;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .result-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin: 25px 0;
+    }
+    
+    .stat-item {
+        background: rgba(39, 174, 96, 0.1);
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid var(--accent);
+        text-align: center;
+    }
+    
+    .stat-label { 
+        color: var(--muted);
+        font-size: 0.85em;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+    
+    .stat-value {
+        font-size: 1.6em;
+        font-weight: 700;
+        color: var(--text);
+    }
+    
+    .confidence-section {
+        background: rgba(255,255,255,.02);
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+    
+    .confidence-label {
+        color: var(--muted);
+        font-size: 0.9em;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .confidence-bar-bg {
+        width: 100%;
+        height: 12px;
+        background: rgba(255,255,255,.06);
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    
+    .confidence-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #27ae60, #2ecc71);
+        width: 0%;
+        transition: width 0.3s;
+    }
+    
+    .warning-alert {
+        background: rgba(231, 76, 60, 0.15);
+        border: 1px solid rgba(231, 76, 60, 0.3);
+        border-left: 4px solid #e74c3c;
+        padding: 15px;
+        border-radius: 8px;
+        color: #e74c3c;
+        margin: 15px 0;
+        font-weight: 600;
+        display: none;
+    }
+    
+    .warning-alert.show { display: block; }
+    
+    .feedback-section {
+        background: rgba(39, 174, 96, 0.1);
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+    
+    .loader-spinner {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: 4px solid rgba(255,255,255,.1);
+        border-top-color: var(--accent);
+        animation: spin 1s linear infinite;
+        margin: 30px auto;
+    }
+    
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .tips-section {
+        background: rgba(41, 128, 185, 0.1);
+        border: 1px solid rgba(41, 128, 185, 0.3);
+        border-left: 4px solid #2980b9;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 30px;
+    }
+    
+    .tips-section h4 { color: #2980b9; margin-bottom: 10px; }
+    .tips-section ul { margin: 0; padding-left: 20px; color: var(--muted); }
+    .tips-section li { margin: 5px 0; font-size: 0.95em; }
+    
+    @media (max-width: 900px) {
+        .input-section { grid-template-columns: 1fr; gap: 20px; }
+        .result-stats { grid-template-columns: 1fr 1fr; }
+        .home-header h1 { font-size: 1.8em; }
+    }
+</style>
+
+<div class="home-header">
+    <h1>🍅 Tomato Disease Detection</h1>
+    <p>Upload an image or use your camera to detect tomato plant diseases in real-time</p>
+</div>
+
+<!-- Input Section: Upload & Camera -->
+<div class="input-section">
+    <!-- Upload Card -->
+    <div class="upload-card">
+        <h3>📁 Upload Image</h3>
+        <label class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">📸</div>
+            <div class="upload-text">
+                Click to browse or drag image here
+                <strong>(JPG, PNG, WebP)</strong>
+            </div>
+            <input id="fileInput" type="file" accept="image/*" hidden>
+        </label>
+    </div>
+    
+    <!-- Camera Card -->
+    <div class="camera-card">
+        <h3>📷 Use Camera</h3>
+        <div id="cameraContainer" style="display: none;">
+            <video id="cameraStream" style="width: 100%; border-radius: 10px; margin-bottom: 15px;"></video>
+            <button id="captureBtn" class="btn primary" style="width: 100%; margin: 0;">Capture Photo</button>
+        </div>
+        <button id="useCamera" class="btn primary" style="width: 100%; margin: 0; padding: 14px; font-size: 1em;">Start Camera</button>
+    </div>
+</div>
+
+<!-- Preview Section -->
+<div class="card" style="display: none;" id="previewSection">
+    <h3 style="color: var(--accent); margin-bottom: 15px;">📷 Selected Image</h3>
+    <div class="preview-container">
+        <img id="preview" class="preview" />
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <button id="predictBtn" class="btn primary" style="padding: 14px; font-weight: 600; width: 100%; margin: 0;">
+            🔍 Analyze Image
+        </button>
+        <button id="resetBtn" class="btn" style="padding: 14px; width: 100%; margin: 0;">
+            ↻ Choose Different Image
+        </button>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loader" style="display: none;">
+    <div class="loader-spinner"></div>
+    <p style="text-align: center; color: var(--muted); margin-top: 15px;">Analyzing image...</p>
+</div>
+
+<!-- Prediction Result Section -->
+<div class="prediction-result" id="resultCard">
+    <div class="disease-name" id="label">—</div>
+    
+    <!-- Warning if Low Confidence -->
+    <div id="lowWarning" class="warning-alert">
+        ⚠️ Low Confidence Prediction - Please verify or try another image
+    </div>
+    
+    <!-- Result Statistics -->
+    <div class="result-stats">
+        <div class="stat-item">
+            <div class="stat-label">Confidence Score</div>
+            <div class="stat-value" id="confText">0%</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Inference Time</div>
+            <div class="stat-value" id="infTime">0ms</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Model Version</div>
+            <div class="stat-value" id="modelVersion" style="font-size: 0.9em; color: var(--text);">-</div>
+        </div>
+    </div>
+    
+    <!-- Confidence Bar -->
+    <div class="confidence-section">
+        <div class="confidence-label">
+            <span>Prediction Confidence</span>
+            <span id="confPercent">0%</span>
+        </div>
+        <div class="confidence-bar-bg">
+            <div id="confBar" class="confidence-bar"></div>
+        </div>
+    </div>
+    
+    <!-- Feedback Section -->
+    <div class="feedback-section">
+        <h4 style="margin: 0 0 12px 0; color: var(--text);">📝 Verify Prediction</h4>
+        <p style="color: var(--muted); font-size: 0.9em; margin-bottom: 12px;">
+            Is this diagnosis correct? Your feedback helps improve the model.
+        </p>
+        <button id="feedbackBtn" class="btn primary" style="width: 100%; padding: 12px; margin: 0;">
+            ✓ Report Correct Label
+        </button>
+    </div>
+</div>
+
+<!-- Tips Section -->
+<div class="tips-section">
+    <h4>💡 Tips for Best Results</h4>
+    <ul>
+        <li><strong>Good Lighting:</strong> Ensure the image is well-lit and clear</li>
+        <li><strong>Focus on Affected Area:</strong> Show the diseased part of the leaf</li>
+        <li><strong>Multiple Angles:</strong> Try different angles if confidence is low</li>
+        <li><strong>Real Images:</strong> Works best with actual tomato plant photos</li>
+        <li><strong>Feedback:</strong> Correct predictions help improve accuracy</li>
+    </ul>
+</div>
+
+<script>
+let currentBlob = null;
+let currentPredictionId = null;
+
+// File input handling
+document.getElementById('fileInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        showPreview(event.target.result);
+    };
+    reader.readAsDataURL(file);
+});
+
+// Camera handling
+let stream = null;
+document.getElementById('useCamera').addEventListener('click', async () => {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' } 
+        });
+        document.getElementById('cameraContainer').style.display = 'block';
+        document.getElementById('useCamera').style.display = 'none';
+        document.getElementById('cameraStream').srcObject = stream;
+        document.getElementById('previewSection').style.display = 'none';
+    } catch (err) {
+        alert('Could not access camera: ' + err.message);
+    }
+});
+
+// Capture button
+document.getElementById('captureBtn').addEventListener('click', () => {
+    const video = document.getElementById('cameraStream');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    
+    canvas.toBlob((blob) => {
+        currentBlob = blob;
+        const dataUrl = canvas.toDataURL('image/jpeg');
+        showPreview(dataUrl);
+        
+        // Stop camera
+        stream.getTracks().forEach(track => track.stop());
+        document.getElementById('cameraContainer').style.display = 'none';
+        document.getElementById('useCamera').style.display = 'block';
+    });
+});
+
+function showPreview(dataUrl) {
+    document.getElementById('preview').src = dataUrl;
+    document.getElementById('previewSection').style.display = 'block';
+    document.getElementById('resultCard').classList.remove('show');
+    document.getElementById('loader').style.display = 'none';
+}
+
+// Predict button
+document.getElementById('predictBtn').addEventListener('click', async () => {
+    const file = document.getElementById('fileInput').files[0];
+    if (!file && !currentBlob) {
+        alert('Please select or capture an image');
+        return;
+    }
+    
+    document.getElementById('loader').style.display = 'block';
+    document.getElementById('previewSection').style.display = 'none';
+    document.getElementById('resultCard').classList.remove('show');
+    
+    try {
+        const formData = new FormData();
+        if (currentBlob) {
+            formData.append('file', currentBlob, 'camera.jpg');
+        } else {
+            formData.append('file', file);
+        }
+        
+        const response = await fetch('/predict', { method: 'POST', body: formData });
+        const data = await response.json();
+        
+        document.getElementById('loader').style.display = 'none';
+        
+        currentPredictionId = data.id;
+        document.getElementById('label').textContent = data.disease;
+        document.getElementById('confText').textContent = data.confidence.toFixed(1) + '%';
+        document.getElementById('confPercent').textContent = data.confidence.toFixed(1) + '%';
+        document.getElementById('infTime').textContent = data.inference_time_ms.toFixed(0) + 'ms';
+        document.getElementById('modelVersion').textContent = data.model_version;
+        
+        const confBar = document.getElementById('confBar');
+        confBar.style.width = data.confidence.toFixed(1) + '%';
+        
+        const warning = document.getElementById('lowWarning');
+        if (data.low_confidence) {
+            warning.classList.add('show');
+        } else {
+            warning.classList.remove('show');
+        }
+        
+        document.getElementById('resultCard').classList.add('show');
+        
+    } catch (e) {
+        document.getElementById('loader').style.display = 'none';
+        alert('Error: ' + e.message);
+    }
+});
+
+// Reset button
+document.getElementById('resetBtn').addEventListener('click', () => {
+    document.getElementById('fileInput').value = '';
+    document.getElementById('preview').src = '';
+    document.getElementById('previewSection').style.display = 'none';
+    document.getElementById('resultCard').classList.remove('show');
+    currentBlob = null;
+});
+
+// Feedback button
+document.getElementById('feedbackBtn').addEventListener('click', async () => {
+    const label = prompt('Enter the correct disease name:');
+    if (!label) return;
+    
+    try {
+        const response = await fetch(`/feedback/${currentPredictionId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ true_label: label })
+        });
+        const data = await response.json();
+        alert(`✓ Feedback recorded!\nCurrent Accuracy: ${data.accuracy !== null ? data.accuracy.toFixed(1) + '%' : 'Not enough feedback yet'}`);
+    } catch (e) {
+        alert('Error: ' + e.message);
+    }
+});
+</script>
+
+{% endblock %}

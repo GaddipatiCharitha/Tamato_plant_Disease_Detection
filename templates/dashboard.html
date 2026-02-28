@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="page-title">Accuracy Dashboard</h1>
+
+<!-- ================= MAIN GRID ================= -->
+<div class="dashboard-grid">
+
+<!-- LEFT: STATS -->
+<div class="stats-panel">
+
+<div class="stat-card">
+  <span>Total Predictions</span>
+  <h2 id="total">0</h2>
+</div>
+
+<div class="stat-card">
+  <span>Accuracy</span>
+  <h2 id="accuracy">-</h2>
+</div>
+
+<div class="stat-card">
+  <span>Avg Confidence</span>
+  <h2 id="avg_conf">-</h2>
+</div>
+
+<div class="stat-card">
+  <span>Model Version</span>
+  <h2 id="model_version">-</h2>
+</div>
+
+<div class="stat-card">
+  <span>Health Score</span>
+  <h2 id="health_badge">-</h2>
+</div>
+
+<div class="stat-card export-wrap">
+  <button id="exportCsv" class="btn primary">Export CSV</button>
+</div>
+
+</div>
+
+<!-- RIGHT: CHART -->
+<div class="chart-card">
+  <h2 class="section-title">Disease Distribution</h2>
+  <canvas id="distChart"></canvas>
+</div>
+
+</div>
+
+<!-- ================= HISTORY ================= -->
+<section class="card">
+<h2 class="section-title">Prediction History</h2>
+
+<table id="historyTable">
+<thead>
+<tr>
+<th>ID</th>
+<th>Time</th>
+<th>Image</th>
+<th>Prediction</th>
+<th>True Label</th>
+<th>Confidence</th>
+<th>Inference</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let chart = null;
+
+async function loadDashboard(){
+  try{
+    const statsRes = await fetch('/stats');
+    const stats = await statsRes.json();
+
+    document.getElementById('total').textContent = stats.total_predictions || 0;
+    document.getElementById('accuracy').textContent = 
+      stats.accuracy != null ? stats.accuracy.toFixed(2) + '%' : 'No feedback';
+    
+    document.getElementById('avg_conf').textContent = 
+      ((stats.avg_confidence || 0) * 100).toFixed(1) + '%';
+    
+    document.getElementById('model_version').textContent = 
+      stats.model_version || 'v1.0-int8';
+
+    const health = stats.health_score || 0;
+    const badge = document.getElementById('health_badge');
+    badge.textContent = health + '/100';
+    badge.style.color = 
+      health > 80 ? '#2ecc71' : 
+      health >= 50 ? '#f39c12' : '#e74c3c';
+
+    // Chart
+    const dist = stats.class_distribution || {};
+    if(Object.keys(dist).length){
+      const ctx = document.getElementById('distChart').getContext('2d');
+      if(chart) chart.destroy();
+      
+      chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(dist).map(l => l.replace('Tomato___', '')),
+          datasets: [{ data: Object.values(dist) }]
+        },
+        options: { plugins: { legend: { position: 'right' } } }
+      });
+    }
+
+    // History
+    const histRes = await fetch('/history');
+    const history = await histRes.json();
+    const tbody = document.querySelector('#historyTable tbody');
+    tbody.innerHTML = '';
+
+    if(!history.length){
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px;">No predictions yet</td></tr>`;
+      return;
+    }
+
+    history.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${row.id}</td>
+        <td>${new Date(row.created_at).toLocaleString()}</td>
+        <td><a target="_blank" href="/predictions/${row.image_path.split('/').pop()}">View</a></td>
+        <td>${row.predicted_label.replace('Tomato___', '')}</td>
+        <td>${row.true_label ? row.true_label.replace('Tomato___', '') : '-'}</td>
+        <td>${(row.confidence * 100).toFixed(1)}%</td>
+        <td>${row.inference_time.toFixed(1)} ms</td>`;
+      tbody.appendChild(tr);
+    });
+
+  } catch(e) {
+    console.error('Dashboard error:', e);
+  }
+}
+
+document.getElementById('exportCsv').addEventListener('click', async () => {
+  try {
+    const res = await fetch('/export/csv');
+    const data = await res.json();
+    const blob = new Blob([data.csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'predictions-' + new Date().toISOString().split('T')[0] + '.csv';
+    a.click();
+  } catch(e) {
+    alert('Export error: ' + e.message);
+  }
+});
+
+loadDashboard();
+setInterval(loadDashboard, 10000);
+</script>
+
+{% endblock %}

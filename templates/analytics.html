@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin: 20px 0; }
+    .analytics-card { background: var(--card); padding: 20px; border-radius: 8px; border-top: 4px solid var(--accent); }
+    .chart-container { position: relative; height: 300px; margin: 20px 0; }
+    .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 15px 0; }
+    .stat-box { background: var(--muted); padding: 15px; border-radius: 6px; text-align: center; }
+    .stat-value { font-size: 1.8em; font-weight: 700; color: var(--accent); }
+    .stat-label { font-size: 0.85em; color: var(--text); margin-top: 5px; text-transform: uppercase; }
+    .class-row { padding: 12px; border-bottom: 1px solid var(--muted); display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 10px; align-items: center; }
+    .class-row:hover { background: rgba(39, 174, 96, 0.1); }
+    .accuracy-bar { height: 8px; background: var(--muted); border-radius: 4px; overflow: hidden; }
+    .accuracy-fill { height: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); }
+    .conf-dist { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
+    .conf-badge { padding: 20px; border-radius: 8px; text-align: center; }
+    .conf-high { background: rgba(39, 174, 96, 0.2); border-left: 4px solid #27ae60; }
+    .conf-medium { background: rgba(243, 156, 18, 0.2); border-left: 4px solid #f39c12; }
+    .conf-low { background: rgba(231, 76, 60, 0.2); border-left: 4px solid #e74c3c; }
+    @media (max-width: 768px) { 
+        .analytics-grid { grid-template-columns: 1fr; }
+        .stat-row { grid-template-columns: 1fr; }
+        .class-row { grid-template-columns: 1fr; }
+        .conf-dist { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div style="max-width: 1200px; margin: 0 auto;">
+
+<h1 style="margin-bottom: 10px;">📊 Advanced Analytics & Reports</h1>
+<p style="color: var(--muted); font-size: 1em; margin-bottom: 30px;">Detailed performance analysis and disease distribution metrics</p>
+
+<!-- Summary Stats -->
+<div id="summary-stats" class="card" style="padding: 20px; margin-bottom: 30px;">
+    <h2>Overall Performance Summary</h2>
+    <div class="stat-row">
+        <div class="stat-box">
+            <div class="stat-value" id="total-pred">0</div>
+            <div class="stat-label">Total Predictions</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="total-acc" style="color: #27ae60;">0%</div>
+            <div class="stat-label">Model Accuracy</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="avg-conf">0%</div>
+            <div class="stat-label">Avg Confidence</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="avg-inf">0ms</div>
+            <div class="stat-label">Avg Inference Time</div>
+        </div>
+    </div>
+</div>
+
+<!-- Inference Time Analysis -->
+<div class="analytics-grid">
+    <div class="analytics-card">
+        <h3 style="margin-top: 0; color: var(--accent);">⏱️ Inference Time Stats</h3>
+        <div id="inference-stats" style="color: var(--muted);">
+            <div style="padding: 20px; text-align: center;">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Confidence Distribution -->
+    <div class="analytics-card">
+        <h3 style="margin-top: 0; color: var(--accent);">🎯 Confidence Distribution</h3>
+        <div id="confidence-dist" class="conf-dist">
+            <div class="conf-badge conf-high">
+                <div style="font-size: 1.5em; font-weight: 700; color: #27ae60;" id="conf-high-val">0</div>
+                <div style="font-size: 0.85em; margin-top: 5px;">High (90-100%)</div>
+            </div>
+            <div class="conf-badge conf-medium">
+                <div style="font-size: 1.5em; font-weight: 700; color: #f39c12;" id="conf-med-val">0</div>
+                <div style="font-size: 0.85em; margin-top: 5px;">Medium (70-90%)</div>
+            </div>
+            <div class="conf-badge conf-low">
+                <div style="font-size: 1.5em; font-weight: 700; color: #e74c3c;" id="conf-low-val">0</div>
+                <div style="font-size: 0.85em; margin-top: 5px;">Low (&lt;70%)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Class-wise Accuracy Report -->
+<div class="analytics-card" style="margin: 30px 0;">
+    <h3 style="margin-top: 0; color: var(--accent);">🍅 Class-wise Performance Report</h3>
+    <div style="overflow-x: auto;">
+        <div id="class-stats" style="color: var(--muted);">
+            <div style="padding: 20px; text-align: center;">Loading class statistics...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Accuracy Breakdown -->
+<div class="analytics-card" style="margin: 30px 0;">
+    <h3 style="margin-top: 0; color: var(--accent);">📈 Feedback & Accuracy Status</h3>
+    <div id="feedback-stats" style="color: var(--muted);">
+        <div style="padding: 20px; text-align: center;">Loading feedback statistics...</div>
+    </div>
+</div>
+
+<!-- Disease Distribution Chart -->
+<div class="analytics-card" style="margin: 30px 0;">
+    <h3 style="margin-top: 0; color: var(--accent);">📊 Disease Distribution (All Predictions)</h3>
+    <div class="chart-container">
+        <canvas id="disease-chart"></canvas>
+    </div>
+</div>
+
+<!-- Monthly Trends (if applicable) -->
+<div class="analytics-card" style="margin: 30px 0;">
+    <h3 style="margin-top: 0; color: var(--accent);">📅 Prediction Timeline</h3>
+    <div id="timeline-stats" style="color: var(--muted);">
+        <div style="padding: 20px; text-align: center;">
+            <p>Last 10 predictions will be shown here to demonstrate timeline and frequency</p>
+            <div id="recent-preds" style="text-align: left; margin-top: 15px; max-height: 300px; overflow-y: auto;">Loading...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Options -->
+<div class="card" style="padding: 20px; margin: 30px 0; background: rgba(39, 174, 96, 0.1); border-left: 4px solid var(--accent);">
+    <h3 style="margin-top: 0; color: var(--accent);">📥 Export Data</h3>
+    <p style="color: var(--muted); margin: 0 0 15px 0;">Download your prediction history and analytics for further analysis</p>
+    <button onclick="exportCSV()" style="background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+        📊 Download CSV Report
+    </button>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+let diseaseChart = null;
+
+async function loadAnalytics() {
+    try {
+        // Load detailed stats
+        const detailedRes = await fetch('/detailed-stats');
+        const detailedData = await detailedRes.json();
+        
+        // Load model performance
+        const perfRes = await fetch('/model-performance');
+        const perfData = await perfRes.json();
+        
+        // Load history
+        const histRes = await fetch('/history');
+        const histData = await histRes.json();
+        
+        // Update summary
+        document.getElementById('total-pred').textContent = perfData.total_predictions;
+        document.getElementById('total-acc').textContent = perfData.accuracy_percent + '%';
+        document.getElementById('avg-conf').textContent = perfData.avg_confidence_percent + '%';
+        document.getElementById('avg-inf').textContent = perfData.avg_inference_time_ms + 'ms';
+        
+        // Inference time stats
+        const infData = detailedData.summary.inference_time_ms;
+        document.getElementById('inference-stats').innerHTML = `
+            <table style="width: 100%; text-align: left;">
+                <tr><td><strong>Minimum:</strong></td><td>${infData.min} ms</td></tr>
+                <tr><td><strong>Maximum:</strong></td><td>${infData.max} ms</td></tr>
+                <tr><td><strong>Average:</strong></td><td>${infData.avg} ms</td></tr>
+            </table>
+        `;
+        
+        // Confidence distribution
+        const confData = detailedData.summary.confidence_distribution;
+        document.getElementById('conf-high-val').textContent = confData.high_90_to_100;
+        document.getElementById('conf-med-val').textContent = confData.medium_70_to_90;
+        document.getElementById('conf-low-val').textContent = confData.low_below_70;
+        
+        // Class-wise stats
+        const classList = detailedData.class_statistics;
+        let classHtml = '<div style="display: flex; flex-direction: column;">';
+        classList.forEach(cls => {
+            const accPercent = cls.accuracy;
+            classHtml += `
+                <div class="class-row">
+                    <div><strong>${cls.class}</strong></div>
+                    <div style="text-align: center;">${cls.total}</div>
+                    <div style="text-align: center;">${cls.correct}</div>
+                    <div>
+                        <div class="accuracy-bar">
+                            <div class="accuracy-fill" style="width: ${accPercent}%"></div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; color: var(--accent); font-weight: 600;">${accPercent.toFixed(1)}%</div>
+                </div>
+            `;
+        });
+        classHtml += '</div>';
+        
+        const classHeader = `
+            <div class="class-row" style="background: var(--muted); font-weight: 600; margin-bottom: 10px;">
+                <div>Class Name</div>
+                <div style="text-align: center;">Total</div>
+                <div style="text-align: center;">Correct</div>
+                <div>Progress</div>
+                <div style="text-align: center;">Accuracy</div>
+            </div>
+        `;
+        
+        document.getElementById('class-stats').innerHTML = classHeader + classHtml;
+        
+        // Feedback stats
+        const withFeedback = perfData.predictions_with_feedback;
+        const totalPred = perfData.total_predictions;
+        const feedbackRate = totalPred > 0 ? ((withFeedback / totalPred) * 100).toFixed(1) : 0;
+        
+        document.getElementById('feedback-stats').innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="padding: 15px; background: var(--muted); border-radius: 6px; text-align: center;">
+                    <div style="font-size: 1.5em; font-weight: 700; color: var(--text);">${withFeedback}/${totalPred}</div>
+                    <div style="margin-top: 5px; font-size: 0.85em;">Predictions with Feedback</div>
+                </div>
+                <div style="padding: 15px; background: rgba(39, 174, 96, 0.1); border-radius: 6px; text-align: center; border-left: 4px solid var(--accent);">
+                    <div style="font-size: 1.5em; font-weight: 700; color: var(--accent);">${feedbackRate}%</div>
+                    <div style="margin-top: 5px; font-size: 0.85em;">Feedback Rate</div>
+                </div>
+            </div>
+        `;
+        
+        // Disease distribution chart
+        const stats = await fetch('/stats').then(r => r.json());
+        const classDist = stats.class_distribution || {};
+        const labels = Object.keys(classDist);
+        const data = Object.values(classDist);
+        const colors = ['#27ae60', '#e74c3c', '#e67e22', '#c0392b', '#8e44ad', '#2980b9', '#16a085', '#d35400', '#f39c12', '#f39c12'];
+        
+        const ctx = document.getElementById('disease-chart');
+        if (diseaseChart) diseaseChart.destroy();
+        diseaseChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: colors.slice(0, labels.length),
+                    borderColor: 'var(--bg)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: 'var(--text)', padding: 15, font: { size: 11 } }
+                    }
+                }
+            }
+        });
+        
+        // Recent predictions timeline
+        let timelineHtml = '<table style="width: 100%; font-size: 0.9em;">';
+        timelineHtml += '<tr style="background: var(--muted);"><td style="padding: 8px;"><strong>Class</strong></td><td style="padding: 8px;"><strong>Confidence</strong></td><td style="padding: 8px;"><strong>Time (ms)</strong></td></tr>';
+        
+        histData.slice(0, 10).forEach(pred => {
+            const conf = (pred.confidence * 100).toFixed(1);
+            timelineHtml += `<tr style="border-bottom: 1px solid var(--muted);"><td style="padding: 8px;">${pred.predicted_label}</td><td style="padding: 8px;">${conf}%</td><td style="padding: 8px;">${pred.inference_time.toFixed(2)}</td></tr>`;
+        });
+        timelineHtml += '</table>';
+        
+        document.getElementById('recent-preds').innerHTML = timelineHtml;
+        
+    } catch (e) {
+        console.error('Error loading analytics:', e);
+    }
+}
+
+async function exportCSV() {
+    try {
+        const response = await fetch('/export/csv');
+        const data = await response.json();
+        const csvContent = data.csv;
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'tomato_predictions_' + new Date().toISOString().split('T')[0] + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    } catch (e) {
+        alert('Error exporting CSV: ' + e.message);
+    }
+}
+
+loadAnalytics();
+setInterval(loadAnalytics, 15000);
+</script>
+
+{% endblock %}
